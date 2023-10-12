@@ -11,11 +11,9 @@ import telran.java48.accounting.dto.RolesDto;
 import telran.java48.accounting.dto.UserDto;
 import telran.java48.accounting.dto.UserEditDto;
 import telran.java48.accounting.dto.UserRegisterDto;
-import telran.java48.accounting.dto.exceptions.IllegalRoleException;
 import telran.java48.accounting.dto.exceptions.UserExistsException;
 import telran.java48.accounting.dto.exceptions.UserNotFoundException;
 import telran.java48.accounting.model.UserAccount;
-import telran.java48.security.model.Role;
 
 @Service
 @RequiredArgsConstructor
@@ -30,7 +28,7 @@ public class UserAccountServiceImpll implements UserAccountService, CommandLineR
 			throw new UserExistsException();
 		}
 		UserAccount userAccount = modelMapper.map(userRegisterDto, UserAccount.class);
-		userAccount.addRole(Role.USER);
+		userAccount.addRole("USER");
 		String password = BCrypt.hashpw(userRegisterDto.getPassword(), BCrypt.gensalt());
 		userAccount.setPassword(password);
 		userAccountRepository.save(userAccount);
@@ -64,24 +62,17 @@ public class UserAccountServiceImpll implements UserAccountService, CommandLineR
 	}
 
 	@Override
-	public RolesDto changeRolesList(String login, String roleString, boolean isAddRole) {
+	public RolesDto changeRolesList(String login, String role, boolean isAddRole) {
 		UserAccount userAccount = userAccountRepository.findById(login).orElseThrow(UserNotFoundException::new);
 		boolean res;
-		Role role;
-		try {
-		    role = Role.valueOf(roleString.toUpperCase());
-		    if (isAddRole) {
-				res = userAccount.addRole(role);
-			} else {
-				res = userAccount.removeRole(Role.valueOf(roleString.toUpperCase()));
-			}
-			if(res) {
-				userAccountRepository.save(userAccount);
-			}
-		} catch (IllegalArgumentException e) {
-		    throw new IllegalRoleException();
+		if (isAddRole) {
+			res = userAccount.addRole(role.toUpperCase());
+		} else {
+			res = userAccount.removeRole(role.toUpperCase());
 		}
-		
+		if(res) {
+			userAccountRepository.save(userAccount);
+		}
 		return modelMapper.map(userAccount, RolesDto.class);
 	}
 
@@ -99,9 +90,9 @@ public class UserAccountServiceImpll implements UserAccountService, CommandLineR
 		if(!userAccountRepository.existsById("admin")) {
 			String password = BCrypt.hashpw("admin", BCrypt.gensalt());
 			UserAccount userAccount = new UserAccount("admin", password, "", "");
-			userAccount.addRole(Role.USER);
-			userAccount.addRole(Role.MODERATOR);
-			userAccount.addRole(Role.ADMINISTRATOR);
+			userAccount.addRole("USER");
+			userAccount.addRole("MODERATOR");
+			userAccount.addRole("ADMINISTRATOR");
 			userAccountRepository.save(userAccount);
 		}
 	}
