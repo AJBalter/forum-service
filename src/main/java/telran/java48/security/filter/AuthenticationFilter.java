@@ -81,7 +81,7 @@ public class AuthenticationFilter implements Filter {
 	private Set<Role> convertStringsToEnums(Set<String> roles) {
 		 Set<Role> res = new HashSet<>();
 	        for (String role : roles) {
-	                res.add(Role.valueOf(role));	           
+	                res.add(Role.valueOf(role.toUpperCase()));	           
 	        }
 	        return res;
 	}
