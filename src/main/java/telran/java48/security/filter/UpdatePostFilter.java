@@ -16,15 +16,14 @@ import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
 
 import lombok.RequiredArgsConstructor;
-import telran.java48.accounting.dao.UserAccountRepository;
-import telran.java48.accounting.model.UserAccount;
+import telran.java48.post.dao.PostRepository;
+import telran.java48.post.model.Post;
 
 @Component
 @RequiredArgsConstructor
-@Order(40)
-public class DeleteByOwnerOrAdministratorFilter implements Filter {
-
-	final UserAccountRepository userAccountRepository;
+@Order(60)
+public class UpdatePostFilter implements Filter {
+	final PostRepository postRepository;
 
 	@Override
 	public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain)
@@ -33,10 +32,14 @@ public class DeleteByOwnerOrAdministratorFilter implements Filter {
 		HttpServletResponse response = (HttpServletResponse) resp;
 		if (checkEndPoint(request.getMethod(), request.getServletPath())) {
 			Principal principal = request.getUserPrincipal();
-			UserAccount userAccount = userAccountRepository.findById(principal.getName()).get();
 			String[] arr = request.getServletPath().split("/");
-			String user = arr[arr.length - 1];
-			if (!userAccount.getRoles().contains("ADMINISTRATOR") && !principal.getName().equalsIgnoreCase(user)) {
+			String postId = arr[arr.length - 1];
+			Post post = postRepository.findById(postId).orElse(null);
+			if (post == null) {
+				response.sendError(404);
+				return;
+			}
+			if (!principal.getName().equalsIgnoreCase(post.getAuthor())) {
 				response.sendError(403);
 				return;
 			}
@@ -47,7 +50,7 @@ public class DeleteByOwnerOrAdministratorFilter implements Filter {
 	}
 
 	private boolean checkEndPoint(String method, String path) {
-		return HttpMethod.DELETE.matches(method) && path.matches("/account/user/\\w+/?");
+		return HttpMethod.PUT.matches(method) && path.matches("/forum/post/\\w+/?");
 	}
 
 }

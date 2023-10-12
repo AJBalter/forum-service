@@ -1,7 +1,6 @@
 package telran.java48.security.filter;
 
 import java.io.IOException;
-import java.security.Principal;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -16,17 +15,16 @@ import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
 
 import lombok.RequiredArgsConstructor;
-import telran.java48.accounting.dao.UserAccountRepository;
-import telran.java48.accounting.model.UserAccount;
 import telran.java48.post.dao.PostRepository;
 import telran.java48.post.model.Post;
+import telran.java48.security.model.Role;
+import telran.java48.security.model.User;
 
 @Component
 @RequiredArgsConstructor
 @Order(50)
-public class DeleteByAuthorOrModeratorFilter implements Filter {
+public class DeletePostFilter implements Filter {
 	final PostRepository postRepository;
-	final UserAccountRepository userAccountRepository;
 
 	@Override
 	public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain)
@@ -35,17 +33,16 @@ public class DeleteByAuthorOrModeratorFilter implements Filter {
 		HttpServletResponse response = (HttpServletResponse) resp;
 
 		if (checkEndPoint(request.getMethod(), request.getServletPath())) {
-			Principal principal = request.getUserPrincipal();
+			User user = (User)request.getUserPrincipal();
 			String[] arr = request.getServletPath().split("/");
 			String postId = arr[arr.length - 1];
 			Post post = postRepository.findById(postId).orElse(null);
-			UserAccount userAccount = userAccountRepository.findById(principal.getName()).get();
 			if (post == null) {
 				response.sendError(404);
 				return;
 			}
-			if (!userAccount.getRoles().contains("MODERATOR")
-					&& !principal.getName().equalsIgnoreCase(post.getAuthor())) {
+			if (!(user.getRoles().contains(Role.MODERATOR)
+					|| user.getName().equalsIgnoreCase(post.getAuthor()))) {
 				response.sendError(403);
 				return;
 			}

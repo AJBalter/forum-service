@@ -1,7 +1,7 @@
 package telran.java48.security.filter;
 
 import java.io.IOException;
-import java.security.Principal;
+
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -15,15 +15,12 @@ import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
 
-import lombok.RequiredArgsConstructor;
-import telran.java48.post.dao.PostRepository;
-import telran.java48.post.model.Post;
+import telran.java48.security.model.Role;
+import telran.java48.security.model.User;
 
 @Component
-@RequiredArgsConstructor
 @Order(40)
-public class UpdateByAuthorFilter implements Filter {
-	final PostRepository postRepository;
+public class DeleteUserFilter implements Filter {
 
 	@Override
 	public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain)
@@ -31,15 +28,11 @@ public class UpdateByAuthorFilter implements Filter {
 		HttpServletRequest request = (HttpServletRequest) req;
 		HttpServletResponse response = (HttpServletResponse) resp;
 		if (checkEndPoint(request.getMethod(), request.getServletPath())) {
-			Principal principal = request.getUserPrincipal();
+			User user = (User)request.getUserPrincipal();
 			String[] arr = request.getServletPath().split("/");
-			String postId = arr[arr.length - 1];
-			Post post = postRepository.findById(postId).orElse(null);
-			if (post == null) {
-				response.sendError(404);
-				return;
-			}
-			if (!principal.getName().equalsIgnoreCase(post.getAuthor())) {
+			String userName = arr[arr.length - 1];
+			if (!(user.getRoles().contains(Role.ADMINISTRATOR) 
+					|| user.getName().equalsIgnoreCase(userName))) {
 				response.sendError(403);
 				return;
 			}
@@ -50,7 +43,7 @@ public class UpdateByAuthorFilter implements Filter {
 	}
 
 	private boolean checkEndPoint(String method, String path) {
-		return HttpMethod.PUT.matches(method) && path.matches("/forum/post/\\w+/?");
+		return HttpMethod.DELETE.matches(method) && path.matches("/account/user/\\w+/?");
 	}
 
 }
