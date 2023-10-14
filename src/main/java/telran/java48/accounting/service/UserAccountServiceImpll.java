@@ -1,8 +1,8 @@
 package telran.java48.accounting.service;
 
-import org.mindrot.jbcrypt.BCrypt;
 import org.modelmapper.ModelMapper;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
@@ -21,6 +21,7 @@ public class UserAccountServiceImpll implements UserAccountService, CommandLineR
 
 	final UserAccountRepository userAccountRepository;
 	final ModelMapper modelMapper;
+	final PasswordEncoder passwordEncoder;
 
 	@Override
 	public UserDto register(UserRegisterDto userRegisterDto) {
@@ -29,7 +30,7 @@ public class UserAccountServiceImpll implements UserAccountService, CommandLineR
 		}
 		UserAccount userAccount = modelMapper.map(userRegisterDto, UserAccount.class);
 		userAccount.addRole("USER");
-		String password = BCrypt.hashpw(userRegisterDto.getPassword(), BCrypt.gensalt());
+		String password = passwordEncoder.encode(userRegisterDto.getPassword());
 		userAccount.setPassword(password);
 		userAccountRepository.save(userAccount);
 		return modelMapper.map(userAccount, UserDto.class);
@@ -79,7 +80,7 @@ public class UserAccountServiceImpll implements UserAccountService, CommandLineR
 	@Override
 	public void changePassword(String login, String newPassword) {
 		UserAccount userAccount = userAccountRepository.findById(login).orElseThrow(UserNotFoundException::new);
-		String password = BCrypt.hashpw(newPassword, BCrypt.gensalt());
+		String password = passwordEncoder.encode(newPassword);
 		userAccount.setPassword(password);
 		userAccountRepository.save(userAccount);
 
@@ -87,14 +88,15 @@ public class UserAccountServiceImpll implements UserAccountService, CommandLineR
 
 	@Override
 	public void run(String... args) throws Exception {
-		if(!userAccountRepository.existsById("admin")) {
-			String password = BCrypt.hashpw("admin", BCrypt.gensalt());
+		if (!userAccountRepository.existsById("admin")) {
+			String password = passwordEncoder.encode("admin");
 			UserAccount userAccount = new UserAccount("admin", password, "", "");
 			userAccount.addRole("USER");
 			userAccount.addRole("MODERATOR");
 			userAccount.addRole("ADMINISTRATOR");
 			userAccountRepository.save(userAccount);
 		}
+		
 	}
 
 }
