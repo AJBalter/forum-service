@@ -85,8 +85,7 @@ public class UserAccountServiceImpll implements UserAccountService, CommandLineR
 	}
 
 	@Override
-	public void changePassword(String login, String newPassword) {
-		
+	public void changePassword(String login, String newPassword) {		
 		UserAccount userAccount = userAccountRepository.findById(login).orElseThrow(UserNotFoundException::new);
 		String password = passwordEncoder.encode(newPassword);
 		userAccount.setPassword(password);
@@ -100,6 +99,7 @@ public class UserAccountServiceImpll implements UserAccountService, CommandLineR
 		if (!userAccountRepository.existsById("admin")) {
 			String password = passwordEncoder.encode("admin");
 			UserAccount userAccount = new UserAccount("admin", password, "", "");
+			userAccount.setPasswordExpiryDate(LocalDate.now().plusDays(passwordValidityPeriodInDays));
 			userAccount.addRole("USER");
 			userAccount.addRole("MODERATOR");
 			userAccount.addRole("ADMINISTRATOR");			
