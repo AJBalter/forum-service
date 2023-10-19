@@ -22,6 +22,8 @@ public class AuthorizationConfiguration {
 					.permitAll()
 				.mvcMatchers(HttpMethod.PUT, "/account/password")
 				    .authenticated()	
+				.mvcMatchers(HttpMethod.PUT, "/account/{user}/password")
+				    .hasRole("ADMINISTRATOR")
 				.mvcMatchers("/**")
                     .access("hasRole('ADMINISTRATOR') or (hasRole('USER') and @customSecurity.checkPasswordExpiration(authentication.name))")
 				.mvcMatchers("/account/user/{login}/role/{role}")

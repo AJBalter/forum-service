@@ -1,4 +1,4 @@
- package telran.java48.accounting.controller;
+package telran.java48.accounting.controller;
 
 import java.security.Principal;
 
@@ -67,6 +67,13 @@ public class UserAccountController {
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void changePassword(Principal principal, @RequestHeader("X-Password") String newPassword) {
 		userAccountService.changePassword(principal.getName(), newPassword);
+
+	}
+	
+	@PutMapping("/{user}/password")
+	@ResponseStatus(HttpStatus.NO_CONTENT)
+	public void changePassword(@PathVariable String userName, @RequestHeader("X-Password") String newPassword) {
+		userAccountService.changePassword(userName, newPassword);
 
 	}
 
