@@ -99,7 +99,6 @@ public class UserAccountServiceImpll implements UserAccountService, CommandLineR
 		if (!userAccountRepository.existsById("admin")) {
 			String password = passwordEncoder.encode("admin");
 			UserAccount userAccount = new UserAccount("admin", password, "", "");
-			userAccount.setPasswordExpiryDate(LocalDate.now().plusDays(passwordValidityPeriodInDays));
 			userAccount.addRole("USER");
 			userAccount.addRole("MODERATOR");
 			userAccount.addRole("ADMINISTRATOR");			
