@@ -1,5 +1,6 @@
 package telran.java48.accounting.model;
 
+import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -20,6 +21,8 @@ public class UserAccount {
 	String firstName;
 	@Setter
 	String lastName;
+	@Setter
+	LocalDate passwordExpiryDate;
 	Set<String> roles;
 	
 	public UserAccount() {

@@ -1,6 +1,9 @@
 package telran.java48.accounting.service;
 
+import java.time.LocalDate;
+
 import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -22,6 +25,9 @@ public class UserAccountServiceImpll implements UserAccountService, CommandLineR
 	final UserAccountRepository userAccountRepository;
 	final ModelMapper modelMapper;
 	final PasswordEncoder passwordEncoder;
+	
+	@Value("${password.validity.period.days}")
+	private int passwordValidityPeriodInDays;
 
 	@Override
 	public UserDto register(UserRegisterDto userRegisterDto) {
@@ -32,6 +38,7 @@ public class UserAccountServiceImpll implements UserAccountService, CommandLineR
 		userAccount.addRole("USER");
 		String password = passwordEncoder.encode(userRegisterDto.getPassword());
 		userAccount.setPassword(password);
+		userAccount.setPasswordExpiryDate(LocalDate.now().plusDays(passwordValidityPeriodInDays));
 		userAccountRepository.save(userAccount);
 		return modelMapper.map(userAccount, UserDto.class);
 	}
@@ -79,9 +86,11 @@ public class UserAccountServiceImpll implements UserAccountService, CommandLineR
 
 	@Override
 	public void changePassword(String login, String newPassword) {
+		
 		UserAccount userAccount = userAccountRepository.findById(login).orElseThrow(UserNotFoundException::new);
 		String password = passwordEncoder.encode(newPassword);
 		userAccount.setPassword(password);
+		userAccount.setPasswordExpiryDate(LocalDate.now().plusDays(passwordValidityPeriodInDays));
 		userAccountRepository.save(userAccount);
 
 	}
@@ -93,7 +102,7 @@ public class UserAccountServiceImpll implements UserAccountService, CommandLineR
 			UserAccount userAccount = new UserAccount("admin", password, "", "");
 			userAccount.addRole("USER");
 			userAccount.addRole("MODERATOR");
-			userAccount.addRole("ADMINISTRATOR");
+			userAccount.addRole("ADMINISTRATOR");			
 			userAccountRepository.save(userAccount);
 		}
 		
